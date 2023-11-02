@@ -1,85 +1,59 @@
 import json
-import os
-import sys
 
-VERSION_FILENAME = 'version.json'  # Define the filename as a global variable
+# Function to check for the presence of version.json and create it with initial values if it doesn't exist
+def create_version_file(filename='version.json'):
+    try:
+        with open(filename, 'r') as file:
+            pass  # File already exists
+    except FileNotFoundError:
+        # Create the file with initial values
+        initial_version = {"major": 0, "minor": 0, "patch": 0}
+        with open(filename, 'w') as file:
+            json.dump(initial_version, file, indent=4)
 
-def read_version():
-    if os.path.exists(VERSION_FILENAME):
-        with open(VERSION_FILENAME, 'r') as file:
-            data = json.load(file)
-        return data  # Return the version as a dictionary
-    else:
-        data = {"major": 0, "minor": 1, "patch": 0}
-        write_version(data)
-        return data  # Return the default version as a dictionary
+# Function to read the version information from the JSON file
+def read_version(filename='version.json'):
+    create_version_file(filename)  # Check and create the file if it doesn't exist
 
-def write_version(version):
-    with open(VERSION_FILENAME, 'w') as file:
-        json.dump(version, file, indent=4)  # Write version as properly formatted JSON
+    with open(filename, 'r') as file:
+        return json.load(file)
 
-def format_version(version):
-    major = str(version['major'])
-    minor = str(version['minor'])
-    patch = str(version['patch'])
-    return f"{major}.{minor}.{patch}"
+# Function to write the version information to the JSON file
+def write_version(data, filename='version.json'):
+    with open(filename, 'w') as file:
+        json.dump(data, file, indent=4)
 
-def increment_version(part):
-    version = read_version()  # Get the version as a dictionary
-    major, minor, patch = version['major'], version['minor'], version['patch']
-    if part == 'major':
-        major += 1
-        minor = 0
-        patch = 0
-    elif part == 'minor':
-        minor += 1
-        patch = 0
-    elif part == 'patch':
-        patch += 1
-    version['major'], version['minor'], version['patch'] = major, minor, patch
-    write_version(version)  # Write the updated version as a dictionary
-    return format_version(version)  # Format and return the version as a string
+# Function to increment the version components
+def increment_version(component):
+    data = read_version()  # Read the initial version values
 
-def machine_readable_version():
-    version = read_version()
-    return json.dumps(version, indent=4)  # Return the version as machine-readable JSON
+    if component == "major":
+        data["major"] += 1
+        data["minor"] = 0
+        data["patch"] = 0
+    elif component == "minor":
+        data["minor"] += 1
+        data["patch"] = 0
+    elif component == "patch":
+        data["patch"] += 1
 
-def human_readable_version():
-    version = read_version()
-    return format_version(version)  # Return the version as X.Y.Z format
+    write_version(data)  # Save the updated version back to the JSON file
 
-def update_setup_py_if_package():
-    # Check if the project is a package by examining the presence of an __init__.py file in the current directory
-    is_package = os.path.exists('__init__.py')
+# Function to set version based on a version string
+def set_version(version_string, filename='version.json'):
+    data = read_version(filename)  # Read the initial version values
 
-    if is_package:
-        # If the project is a package, update the setup.py file
-        try:
-            with open('setup.py', 'r') as setup_file:
-                setup_code = setup_file.read()
+    major, minor, patch = map(int, version_string.split('.'))
+    data["major"] = major
+    data["minor"] = minor
+    data["patch"] = patch
 
-            # Check if the setup.py file contains the correct package name
-            package_name = os.path.basename(os.path.abspath(os.path.curdir))
-            if package_name != "py_version_tool":
-                setup_code = setup_code.replace("name='py_version_tool'", f"name='{package_name}'")
+    write_version(data)  # Save the updated version back to the JSON file
 
-            with open('setup.py', 'w') as setup_file:
-                setup_file.write(setup_code)
+# Usage
+# Increment the major version
+increment_version("major")
 
-            print("Updated setup.py for the package.")
-        except FileNotFoundError:
-            print("setup.py not found. Please make sure it exists in your package directory.")
-    else:
-        print("The current directory does not appear to be a Python package.")
-
-if __name__ == '__main__':
-    if len(sys.argv) >= 2:
-        if sys.argv[1] == 'update-setup-py':
-            update_setup_py_if_package()
-        elif sys.argv[1] == 'machine-readable-version':
-            print(machine_readable_version())
-        elif sys.argv[1] == 'human-readable-version':
-            print(human_readable_version())
-    else:
-        # Your existing code for reading, writing, and incrementing version numbers
-        pass
+# Set the version based on a version string
+version_string = "2.3.1"  # Change this to the desired version string
+set_version(version_string)
