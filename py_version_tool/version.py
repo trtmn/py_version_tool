@@ -130,10 +130,3 @@ def set_version(version_string, filename='version.json'):
 
     _write_version(data)  # Save the updated version back to the JSON file
 
-# Usage
-# Increment the major version
-increment_version("major")
-
-# Set the version based on a version string
-version_string = "2.3.1"  # Change this to the desired version string
-set_version(version_string)
