@@ -1,0 +1,34 @@
+name: Run Python Tests on Pull Request
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x  # Specify the Python version you need
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt  # Install your project's dependencies
+
+    - name: Run tests
+      run: python -m unittest discover -s tests -p "unit_tests.py"  # Adjust this command based on your testing framework
+
+    - name: Merge Branch (if tests pass)
+      if: success() # Only proceed if tests passed
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "GitHub Actions"
+        git checkout -B ${{ github.event.pull_request.head.ref }}
+        git merge ${{ github.event.pull_request.base.ref }}
+        git push origin ${{ github.event.pull_request.head.ref }}
