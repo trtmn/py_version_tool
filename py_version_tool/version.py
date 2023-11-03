@@ -76,7 +76,7 @@ def update_setup_py_version(setup_py_filename, version_data):
 
     """
     if not os.path.exists(setup_py_filename):
-        print(f"{setup_py_filename} does not exist.")
+        # print(f"{setup_py_filename} does not exist.")
         return
 
     with open(setup_py_filename, 'r') as file:
